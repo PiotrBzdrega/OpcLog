@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="OpcLog">
+    <file>icon.jpg</file>
+  </qresource>
+</RCC>
