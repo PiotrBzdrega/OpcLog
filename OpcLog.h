@@ -22,7 +22,7 @@ public:
     OpcLog(QWidget *parent = Q_NULLPTR);
     ~OpcLog();
     std::string getIp();
-    std::string getMode();
+    bool isStandardMode();
 
 
 public slots:

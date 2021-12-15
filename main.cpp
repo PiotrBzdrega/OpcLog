@@ -32,16 +32,12 @@
 //#include "ui_dialog.h"
 
 constexpr char opc_address_suffix[] = ":4840"; //opc port
-//constexpr char logging_db[] = "\"SSI_TL_Logging_DB\".\"entry\""; //standard logs
-//constexpr char logging_tc_db[] = "\"SSI_TL_Logging_TC_DB\".\"entry\""; //standard logs
 constexpr char r_bracket = ']';
 constexpr int max_log_entry = 8;//single/multi read test
-constexpr int st_log_entries = 2001; //amount of standard entries
-constexpr int tc_log_entries = 101; //amount of telecomunication entries
 constexpr int ip_length = 15; //4*3digits + 3*'.'
 
 
-//idk if always we will have the same ns index ; check if we can obtain this info via UA_Client_NamespaceGetIndex(
+//range assign for nodes
 constexpr int ns = 3;
 
 
@@ -290,7 +286,7 @@ int SingleRead(UA_Client* client, std::fstream& cvsfile, char* node_identifier, 
     return 0;
 }
 
-int SingleReadArray(UA_Client* client, std::fstream& cvsfile, UA_Variant value)
+int SingleReadArray(UA_Client* client, std::fstream& cvsfile, UA_Variant value,char* node_identifier)
 {
     UA_String log_entry;
     UA_StatusCode retval;
@@ -298,7 +294,9 @@ int SingleReadArray(UA_Client* client, std::fstream& cvsfile, UA_Variant value)
     UA_sleep_ms(10);
 
     //base node identiefier path
-    char node_identifier[34] = "\"SSI_TL_Logging_DB\".\"entry\"";
+    //char node_identifier[34] = "\"SSI_TL_Logging_DB\".\"entry\"";
+
+
 
     retval = UA_Client_readValueAttribute(client, UA_NODEID_STRING(ns, node_identifier), &value);
 
@@ -587,6 +585,10 @@ void sort(const wchar_t* path)
 
 int main(int argc, char* argv[])
 {
+
+    char logging_db[] = "\"SSI_TL_Logging_DB\".\"entry\""; //standard logs
+    char logging_tc_db[] = "\"SSI_TL_Logging_TC_DB\".\"entry\""; //standard logs
+
     //base opc ip
     char ip_identifier[31] = "opc.tcp://";
 
@@ -597,6 +599,8 @@ int main(int argc, char* argv[])
 
     //create local qt object
     OpcLog w;
+
+    //a.setWindowIcon(QIcon(":/OpcLog/icon.jpg"));
 
     //display qt object
     w.show();
@@ -610,101 +614,117 @@ int main(int argc, char* argv[])
         //std::cout << "IP invalid or app closed without enter IP" << std::endl;
         return 0;
     }
+    //passed ip is correct
     else
     {
         //copy out string to char
         strcpy(b, w.getIp().c_str());
         //std::cout << w.getIp() << std::endl;
+
+        //copy out choosen array node
+
+        //paste opc ip address in the char array ; '\0' is appended as last character
+        sprintf(&ip_identifier[10], "%s%s", b, opc_address_suffix);
+
+
+        //std::cout << ip_identifier << std::endl;
+
+        ////base node identiefier path
+        //char node_identifier[34] = "\"SSI_TL_Logging_DB\".\"entry\"[";
+
+
+
+        //////////////////////////////
+
+        UA_Client* client = UA_Client_new();
+        UA_ClientConfig_setDefault(UA_Client_getConfig(client));
+        //UA_Client_getConfig(client)->timeout = 30000; //increase timeout from 5s -> 30s
+        UA_StatusCode retval = UA_Client_connect(client, ip_identifier);
+        if (retval != UA_STATUSCODE_GOOD) {
+            UA_Client_delete(client);
+            std::cout << std::hex << retval << std::dec;
+            return (int)retval;
+        }
+
+        char* p = getenv("USERPROFILE");
+        if (p)
+            ;//std::cout << p << '\n';
+        else
+            std::cout << "USERPROFILE not found\n";
+
+
+        std::string path(p); //assign read path
+
+        path = path + "\\" + "log.csv";
+
+        //std::cout << path << '\n'; //\n escape phrase
+
+        std::wstring widestr = std::wstring(path.begin(), path.end());
+        const wchar_t* widecstr = widestr.c_str();
+
+
+        // file pointer
+        std::fstream opc_log;
+
+        // opens an existing csv file (and removes content) or creates a new file.
+        opc_log.open(path, std::ios::out | std::ios::trunc);
+
+
+        /* Read the value attribute of the node. UA_Client_readValueAttribute is a
+         * wrapper for the raw read service available as UA_Client_Service_read. */
+        UA_Variant value; /* Variants can hold scalar values and arrays of any type */
+        UA_Variant_init(&value);
+
+        /* NodeId of the variable holding the current time */
+        const UA_NodeId nodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_SERVER_SERVERSTATUS_CURRENTTIME);
+        retval = UA_Client_readValueAttribute(client, nodeId, &value);
+
+        if (retval == UA_STATUSCODE_GOOD &&
+            UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_DATETIME])) {
+            UA_DateTime raw_date = *(UA_DateTime*)value.data;
+            UA_DateTimeStruct dts = UA_DateTime_toStruct(raw_date);
+            UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "date is: %u-%u-%u %u:%u:%u.%03u\n",
+                dts.day, dts.month, dts.year, dts.hour, dts.min, dts.sec, dts.milliSec);
+        }
+
+
+        ////retval = MultiRead(client, opc_log, node_identifier);
+        //
+        ////retval = SingleRead(client, opc_log, node_identifier, value);
+
+        if (w.isStandardMode())
+        {   //user marked standard mode
+            retval = SingleReadArray(client, opc_log, value, logging_db);
+        }
+        else
+        {  //user marked telecomunication mode
+            retval = SingleReadArray(client, opc_log, value, logging_tc_db);
+        }
+
+        
+
+        /* Clean up */
+        UA_Variant_clear(&value);
+
+        UA_Client_disconnect(client);
+        UA_Client_delete(client); /* Disconnects the client internally */
+
+
+        //////////////////////////////////////
+        //close file
+        opc_log.close();
+
+
+        //std::string IP("127.0.0.1");
+        //std::string CMD("ping " + IP);
+        //std::system(CMD.c_str());
+
+
+        sort(widecstr);
+
+
     }
 
-    //paste opc ip address in the char array ; '\0' is appended as last character
-    sprintf(&ip_identifier[10], "%s%s", b, opc_address_suffix);
-
-
-    //std::cout << ip_identifier << std::endl;
-
-    ////base node identiefier path
-    //char node_identifier[34] = "\"SSI_TL_Logging_DB\".\"entry\"[";
-
-    char* p = getenv("USERPROFILE");
-    if (p)
-        ;//std::cout << p << '\n';
-    else
-        std::cout << "USERPROFILE not found\n";
-
-
-    std::string path(p); //assign read path
-
-    path = path + "\\" + "log.csv";
-
-    //std::cout << path << '\n'; //\n escape phrase
-
-    std::wstring widestr = std::wstring(path.begin(), path.end());
-    const wchar_t* widecstr = widestr.c_str();
-
-
-    // file pointer
-    std::fstream opc_log;
-
-    // opens an existing csv file (and removes content) or creates a new file.
-    opc_log.open(path, std::ios::out | std::ios::trunc);
-
-
-    //////////////////////////////
-
-    UA_Client* client = UA_Client_new();
-    UA_ClientConfig_setDefault(UA_Client_getConfig(client));
-    UA_Client_getConfig(client)->timeout = 30000; //increase timeout from 5s -> 30s
-    UA_StatusCode retval = UA_Client_connect(client, ip_identifier);
-    if (retval != UA_STATUSCODE_GOOD) {
-        UA_Client_delete(client);
-        std::cout << std::hex << retval << std::dec;
-        return (int)retval;
-    }
-
-    /* Read the value attribute of the node. UA_Client_readValueAttribute is a
-     * wrapper for the raw read service available as UA_Client_Service_read. */
-    UA_Variant value; /* Variants can hold scalar values and arrays of any type */
-    UA_Variant_init(&value);
-
-    /* NodeId of the variable holding the current time */
-    const UA_NodeId nodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_SERVER_SERVERSTATUS_CURRENTTIME);
-    retval = UA_Client_readValueAttribute(client, nodeId, &value);
-
-    if (retval == UA_STATUSCODE_GOOD &&
-        UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_DATETIME])) {
-        UA_DateTime raw_date = *(UA_DateTime*)value.data;
-        UA_DateTimeStruct dts = UA_DateTime_toStruct(raw_date);
-        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "date is: %u-%u-%u %u:%u:%u.%03u\n",
-            dts.day, dts.month, dts.year, dts.hour, dts.min, dts.sec, dts.milliSec);
-    }
-
-
-    ////retval = MultiRead(client, opc_log, node_identifier);
-    //
-    ////retval = SingleRead(client, opc_log, node_identifier, value);
-
-     retval = SingleReadArray(client, opc_log, value);
-
-    /* Clean up */
-    UA_Variant_clear(&value);
-
-    UA_Client_disconnect(client);
-    UA_Client_delete(client); /* Disconnects the client internally */
-
-
-    //////////////////////////////////////
-    //close file
-    opc_log.close();
-
-
-    //std::string IP("127.0.0.1");
-    //std::string CMD("ping " + IP);
-    //std::system(CMD.c_str());
-
-
-    sort(widecstr);
-
-
+    
 }
 

@@ -62,9 +62,10 @@ std::string OpcLog::getIp()
 {
     return IpAdress;
 }
-std::string OpcLog::getMode()
+bool OpcLog::isStandardMode()
 {
-    return mode;
+    //standard mode is choosen
+    return (mode=="ST");
 }
 
 
