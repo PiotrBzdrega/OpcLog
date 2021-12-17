@@ -1,5 +1,5 @@
 # OpcLog
-Read Array from OPC server and paste it sorted to excel sheet
+**Read Array from OPC server and paste sorted to excel sheet**
 
 After user enter correct IP address for existing OPC UA Server -><br />
 -> created Client is trying to establish connection -><br />
