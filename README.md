@@ -7,5 +7,6 @@ After user enter correct IP address for existing OPC UA Server -><br />
 -> then in %USERPROFILE% path (C:\Users\piotr in my case), .cvs file is created and finally opened  🙃
 
 **todo:**<br />
--change all nodes level log "SSI_HMI_CPM_DB".node[#IO_EL_INFO.node_id].log_level to FATAL(1) <br /> 
- then only selected by user leave for DEBUG(5)/TRACE(6)
+- change all nodes level log "SSI_HMI_CPM_DB".node[#IO_EL_INFO.node_id].log_level to FATAL(1) <br /> 
+  then only selected by user leave for DEBUG(5)/TRACE(6)
+- remember last entered IP
