@@ -49,7 +49,7 @@ void OpcLog::ReadClicked()
 
 		OpcLog::UaConnection();
 
-		//this->close();
+		this->close();
 		//QApplication::exit();
 	}
 	else
@@ -97,7 +97,7 @@ int OpcLog::UaConnection()
 		//std::cout << std::hex << retval << std::dec;
 
 		//pop up message
-		QMessageBox::critical(this, "Error", "open62541 error code: " + OpcLog::toHex(retval), QMessageBox::Ok);
+		QMessageBox::critical(this, "Error", "open62541 error code: " + QString::fromStdString(UA_StatusCode_name(retval)), QMessageBox::Ok);
 		return (int)retval;
 	}
 
@@ -180,6 +180,8 @@ int OpcLog::UaConnection()
 		//UA_STATUSCODE_GOOD 
 		sort(widecstr);
 	}
+
+	return 0;
 }
 
 int OpcLog::SingleReadArray(UA_Client* client, std::fstream& cvsfile, UA_Variant value, char* node_identifier)
@@ -215,7 +217,7 @@ int OpcLog::SingleReadArray(UA_Client* client, std::fstream& cvsfile, UA_Variant
 	else
 	{
 		//something went wrong
-		QMessageBox::critical(this, "Error", "open62541 error code: " + OpcLog::toHex(retval), QMessageBox::Ok);
+		QMessageBox::critical(this, "Error", "open62541 error code: " + QString::fromStdString(UA_StatusCode_name(retval)), QMessageBox::Ok);
 	}
 	return (int)retval;
 }
