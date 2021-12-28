@@ -90,7 +90,7 @@ int OpcLog::UaConnection()
 
 	UA_Client* client = UA_Client_new();
 	UA_ClientConfig_setDefault(UA_Client_getConfig(client));
-	//UA_Client_getConfig(client)->timeout = 30000; //increase timeout from 5s -> 30s
+	UA_Client_getConfig(client)->timeout = 30000; //increase timeout from 5s -> 30s
 	UA_StatusCode retval = UA_Client_connect(client, ip_identifier);
 	if (retval != UA_STATUSCODE_GOOD) {
 		UA_Client_delete(client);
