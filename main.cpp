@@ -34,11 +34,6 @@
 constexpr char r_bracket = ']';
 constexpr int max_log_entry = 8;//single/multi read test
 
-
-//range assign for nodes
-//constexpr int ns = 3;
-
-
 int MultiRead(UA_Client* client, std::fstream& cvsfile, char* node_identifier)
 {
 	UA_Variant out;
@@ -490,8 +485,6 @@ int main(int argc, char* argv[])
 
 	//create local qt object
 	OpcLog w;
-
-	//a.setWindowIcon(QIcon(":/OpcLog/icon.jpg"));
 
 	//display qt object
 	w.show();
