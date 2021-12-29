@@ -46,9 +46,15 @@
     <ClCompile Include="IPCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NodeMatrix.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="IPCtrl.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="NodeMatrix.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -56,5 +62,10 @@
     <Image Include="icon.jpg">
       <Filter>Media</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="NodeMatrix.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
 </Project>
