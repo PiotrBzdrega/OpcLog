@@ -9,4 +9,5 @@ After user enter correct IP address for existing OPC UA Server -><br />
 **todo:**<br />
 - change all nodes level log "SSI_HMI_CPM_DB".node[#IO_EL_INFO.node_id].log_level to FATAL(1) <br /> 
   then only selected by user leave for DEBUG(5)/TRACE(6)
+- verify also "CS_GS_Para_DB".para.lu_data_log_level.value.act (log level for LU) 
 - remember last entered IP
