@@ -42,7 +42,7 @@ constexpr char opc_address_suffix[] = ":4840"; //opc port
 constexpr int ip_length = 15; //4*3digits + 3*'.'
 constexpr int ns = 3; //range assign for nodes
 
-typedef struct SSI_HMI_CPM_Node_ST {
+typedef struct  {
 	UA_UInt16 request_update; //PLC requests new parameter
 	UA_UInt16 update_done;    //PLC has got the new parameter
 	UA_UInt16 request_init;   //The written parameter needs an init
@@ -50,7 +50,7 @@ typedef struct SSI_HMI_CPM_Node_ST {
 	UA_UInt16 request_refresh;//PLC requests a refresh
 	UA_UInt16 refresh_done;   //The refresh is done from the CPM
 	UA_Int16  log_level;      //Log level of this node
-};
+}SSI_HMI_CPM_Node_ST;
 
 static UA_DataTypeMember Node_members[7] = {
 	{
@@ -141,7 +141,6 @@ private slots:
 private:
 	Ui::OpcLogClass ui;   //main window
 	NodeMatrix *secondUi; //auxiliary ui window
-	QTimer* timer;
 	std::string IpAdress = "";
 	std::string mode = "";
 	int OpcLog::SingleReadArray(UA_Client* client, std::fstream& cvsfile, UA_Variant value, char* node_identifier); //store data in .cvs file
@@ -152,7 +151,7 @@ private:
 	bool isStandardMode();
 	void OpcLog::sort(const wchar_t* path);
 	QString toHex(long long dec);
-	int OpcLog::SetMembers();
+	int OpcLog::SetMembers();                             //state IP and log mode 
 
 
 

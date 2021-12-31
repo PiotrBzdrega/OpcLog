@@ -16,7 +16,7 @@
   <widget class="QTableWidget" name="tableWidget">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>0</y>
      <width>641</width>
      <height>491</height>
@@ -56,9 +56,26 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>tableWidget</sender>
+   <signal>itemDoubleClicked(QTableWidgetItem*)</signal>
+   <receiver>NodeMatrix</receiver>
+   <slot>ChangeLevel(QTableWidgetItem*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>330</x>
+     <y>245</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>321</x>
+     <y>313</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>Overwrite()</slot>
   <slot>SetFatal()</slot>
+  <slot>ChangeLevel(QTableWidgetItem*)</slot>
  </slots>
 </ui>

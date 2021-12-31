@@ -7,13 +7,14 @@ OpcLog::OpcLog(QWidget* parent)
 	//create main user interface
 	ui.setupUi(this);
 
-	//create second auxilliary window
+    //second window class
 	secondUi = new NodeMatrix();
+	
+	//connect Clicked signal from NOde matrix class to change window
+	connect(secondUi, &NodeMatrix::ClickedBtn, this, &OpcLog::changeWindow);
 
-	//timer = new QTimer();
-	//connect(timer, &QTimer::timeout, this, &OpcLog::changeWindow);
-	//timer->start(1000); // 1000 ms
 
+	//regular expresion to IP address
 
 	QRegExp rx("^(0|[1-9]|[1-9][0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))$");
 	QValidator* validator3 = new QRegExpValidator(rx, ui.Byte3);
@@ -36,6 +37,7 @@ OpcLog::~OpcLog()
 
 void OpcLog::changeWindow()
 {
+
 	if (secondUi->isVisible())
 	{
 		//open main ui
@@ -46,11 +48,9 @@ void OpcLog::changeWindow()
 	{
 		//hide main ui
 		this->hide();
-		secondUi->show();
+		secondUi->show();		
 	}
 }
-
-
 
 void OpcLog::ReadClicked()
 {
@@ -104,7 +104,6 @@ void OpcLog::ReadNodeClicked()
 	{
 		OpcLog::UaConnection(UA_FALSE);
 
-		//this->close();
 		//QApplication::exit();
 	}
 
@@ -308,6 +307,7 @@ int OpcLog::SingleReadArray(UA_Client* client, UA_Variant value, char* node_iden
 	UA_String log_entry;
 	UA_StatusCode retval;
 
+	std::vector<int> level_array;
 	UA_sleep_ms(10);
 
 	retval = UA_Client_readValueAttribute(client, UA_NODEID_STRING(ns, node_identifier), &value);
@@ -320,22 +320,26 @@ int OpcLog::SingleReadArray(UA_Client* client, UA_Variant value, char* node_iden
 
 
 		UA_ExtensionObject* eo = ((UA_ExtensionObject*)value.data);
-		for (int i = 0; i <10 /*value.arrayLength*/; i++)
+		for (int i = 0; i <value.arrayLength; i++)
 		{
-			std::cout << "NODE: " << i << std::endl;
+			//std::cout << "NODE: " << i << std::endl;
 			SSI_HMI_CPM_Node_ST* MyCDS = (SSI_HMI_CPM_Node_ST*)eo[i].content.decoded.data;
-			std::cout << MyCDS->request_update << std::endl;
-			std::cout << MyCDS->update_done << std::endl;
-			std::cout << MyCDS->request_init << std::endl;
-			std::cout << MyCDS->init_done << std::endl;
-			std::cout << MyCDS->request_refresh << std::endl;
-			std::cout << MyCDS->refresh_done << std::endl;
-			std::cout << MyCDS->log_level << std::endl;
-			MyCDS->log_level = 1;
-			std::cout << MyCDS->log_level << std::endl;
+			//std::cout << MyCDS->request_update << std::endl;
+			//std::cout << MyCDS->update_done << std::endl;
+			//std::cout << MyCDS->request_init << std::endl;
+			//std::cout << MyCDS->init_done << std::endl;
+			//std::cout << MyCDS->request_refresh << std::endl;
+			//std::cout << MyCDS->refresh_done << std::endl;
+			//std::cout << MyCDS->log_level << std::endl;
+			//MyCDS->log_level = 1;
+			//std::cout << MyCDS->log_level << std::endl;
+			// 
+			//fill levels array
+			level_array.push_back(MyCDS->log_level);
 		}
 
-
+		//pass node levels array to another class
+		secondUi->ShowNodes(level_array);
 
 
 		////cast variant for string array
