@@ -41,6 +41,9 @@
 constexpr char opc_address_suffix[] = ":4840"; //opc port
 constexpr int ip_length = 15; //4*3digits + 3*'.'
 constexpr int ns = 3; //range assign for nodes
+constexpr char logging_db[] = "\"SSI_TL_Logging_DB\".\"entry\"";       //standard logs
+constexpr char logging_tc_db[] = "\"SSI_TL_Logging_TC_DB\".\"entry\""; //telegrams logs
+constexpr char nodes_log_level[] = "\"SSI_HMI_CPM_DB\".\"node\"";      //nodes
 
 typedef struct  {
 	UA_UInt16 request_update; //PLC requests new parameter
@@ -116,9 +119,6 @@ static const UA_DataType Node_type = {
 	Node_members
 };
 
-
-
-
 class OpcLog : public QMainWindow
 {
 	Q_OBJECT
@@ -134,8 +134,7 @@ public slots:
 	void ReadClicked();
 	void ReadNodeClicked();
 private slots:
-	void changeWindow();
-
+	void retrunToMain();
 
 
 private:
@@ -143,8 +142,8 @@ private:
 	NodeMatrix *secondUi; //auxiliary ui window
 	std::string IpAdress = "";
 	std::string mode = "";
-	int OpcLog::SingleReadArray(UA_Client* client, std::fstream& cvsfile, UA_Variant value, char* node_identifier); //store data in .cvs file
-	int OpcLog::SingleReadArray(UA_Client* client, UA_Variant value, char* node_identifier);						//read into console
+	int OpcLog::SingleReadArray(std::fstream& cvsfile, char* node_identifier); //store data in .cvs file
+	int OpcLog::SingleReadArray(char* node_identifier, bool Read);		   //read into console
 	int OpcLog::UaConnection(UA_Boolean logging);
 	std::string getIp();								   //return ip of OPC server in string type
 	std::fstream OpcLog::OpenExcelSheet(std::string path); // create/open .cvs file based on path
@@ -152,9 +151,9 @@ private:
 	void OpcLog::sort(const wchar_t* path);
 	QString toHex(long long dec);
 	int OpcLog::SetMembers();                             //state IP and log mode 
-
-
-
-
+	UA_Client* client;			//client pointer to let other functions in
+	void OpcLog::deleteClient();	
+	int OpcLog::checkCommunicacion();
+	void changeWindow();
 };
 

@@ -1,6 +1,15 @@
 
 #include "OpcLog.h"
 
+
+
+
+/* TODO: Loading window when connecting to server or waiting for data */
+/* TODO: remember last entered IP */
+
+
+
+
 OpcLog::OpcLog(QWidget* parent)
 	: QMainWindow(parent)
 {
@@ -11,7 +20,7 @@ OpcLog::OpcLog(QWidget* parent)
 	secondUi = new NodeMatrix();
 	
 	//connect Clicked signal from NOde matrix class to change window
-	connect(secondUi, &NodeMatrix::ClickedBtn, this, &OpcLog::changeWindow);
+	connect(secondUi, &NodeMatrix::ClickedBtn, this, &OpcLog::retrunToMain);
 
 
 	//regular expresion to IP address
@@ -30,26 +39,44 @@ OpcLog::OpcLog(QWidget* parent)
 	ui.Byte0->setValidator(validator0);
 
 }
+
 OpcLog::~OpcLog()
 {
 
 }
 
-void OpcLog::changeWindow()
+void OpcLog::retrunToMain()
 {
-
 	if (secondUi->isVisible())
 	{
 		//open main ui
 		secondUi->hide();
 		this->show();
 	}
-	else
-	{
+
+	UA_StatusCode retval;
+	/* TODO: make node names global define */
+	//char nodes_log_level[] = "\"SSI_HMI_CPM_DB\".\"node\"";      //nodes
+
+	retval = OpcLog::SingleReadArray(nodes_log_level, FALSE);
+}
+
+void OpcLog::changeWindow()
+{
+	
+
+	//if (secondUi->isVisible())
+	//{
+	//	//open main ui
+	//	secondUi->hide();
+	//	this->show();
+	//}
+
 		//hide main ui
 		this->hide();
+
+		//open "nodes" window
 		secondUi->show();		
-	}
 }
 
 void OpcLog::ReadClicked()
@@ -67,13 +94,13 @@ void OpcLog::ReadClicked()
 int OpcLog::SetMembers()
 {
 	//if we have something in input byte then copy out this number, otherwise set 256 as value out of IP range to recognize it in the next condition
-	int byte0 = ((ui.Byte0->text()).toStdString() == "") ? 256 : atoi((ui.Byte0->text()).toStdString().c_str());
-	int byte1 = ((ui.Byte1->text()).toStdString() == "") ? 256 : atoi((ui.Byte1->text()).toStdString().c_str());
-	int byte2 = ((ui.Byte2->text()).toStdString() == "") ? 256 : atoi((ui.Byte2->text()).toStdString().c_str());
-	int byte3 = ((ui.Byte3->text()).toStdString() == "") ? 256 : atoi((ui.Byte3->text()).toStdString().c_str());
+	int byte0 = (ui.Byte0->text().toStdString() == "") ? 256 : ui.Byte0->text().toInt();
+	int byte1 = (ui.Byte1->text().toStdString() == "") ? 256 : ui.Byte1->text().toInt();;
+	int byte2 = (ui.Byte2->text().toStdString() == "") ? 256 : ui.Byte2->text().toInt();;
+	int byte3 = (ui.Byte3->text().toStdString() == "") ? 256 : ui.Byte3->text().toInt();;
 
 	//detect if user filled all input boxes
-	if (byte0 >= 0 && byte0 <= 255
+	if (byte0 > 0 && byte0 <= 255
 		&&
 		byte1 >= 0 && byte1 <= 255
 		&&
@@ -84,7 +111,7 @@ int OpcLog::SetMembers()
 		//save IP in class field
 		IpAdress = (ui.Byte3->text() + "." + ui.Byte2->text() + "." + ui.Byte1->text() + "." + ui.Byte0->text()).toStdString();
 		//save mode from radio field
-		mode = ui.StLog->isChecked() ? "ST" : "TC";
+		mode = (ui.StLog->isChecked()) ? "ST" : "TC";
 		return 0;
 	}
 	else
@@ -105,9 +132,12 @@ void OpcLog::ReadNodeClicked()
 		OpcLog::UaConnection(UA_FALSE);
 
 		//QApplication::exit();
+
+		//open "nodes" window
+		OpcLog::changeWindow();
 	}
 
-	OpcLog::changeWindow();
+	
 	
 };
 
@@ -132,13 +162,38 @@ std::fstream OpcLog::OpenExcelSheet(std::string path)
 	return cvs_log;
 }
 
+int OpcLog::checkCommunicacion() {
+
+	UA_SessionState sessionState;
+	UA_StatusCode connectStatus;
+	UA_Client_getState(client, nullptr, &sessionState, &connectStatus);
+
+		/*std::cout << sessionState << std::endl;
+		std::cout << UA_StatusCode_name(connectStatus) << std::endl;*/
+
+		return sessionState;
+}
+
+
+void OpcLog::deleteClient()
+{
+
+	if (checkCommunicacion()) //disconnect client if reachable >0
+	{
+		UA_Client_disconnect(client);
+	}
+
+	UA_Client_delete(client); /* Disconnects the client internally */
+
+}
+
 
 
 int OpcLog::UaConnection(UA_Boolean logging)
 {
-	char logging_db[] = "\"SSI_TL_Logging_DB\".\"entry\"";       //standard logs
-	char logging_tc_db[] = "\"SSI_TL_Logging_TC_DB\".\"entry\""; //telegrams logs
-	char nodes_log_level[] = "\"SSI_HMI_CPM_DB\".\"node\"";      //nodes
+	//char logging_db[] = "\"SSI_TL_Logging_DB\".\"entry\"";       //standard logs
+	//char logging_tc_db[] = "\"SSI_TL_Logging_TC_DB\".\"entry\""; //telegrams logs
+	//char nodes_log_level[] = "\"SSI_HMI_CPM_DB\".\"node\"";      //nodes
 
 	//base opc ip
 	char ip_identifier[31] = "opc.tcp://";
@@ -163,26 +218,27 @@ int OpcLog::UaConnection(UA_Boolean logging)
 
 ////////////////////////////////////////////////////
 
-	UA_Client* client = UA_Client_new();
+  client = UA_Client_new();
 	UA_ClientConfig_setDefault(UA_Client_getConfig(client));
 	UA_Client_getConfig(client)->timeout = 30000; //increase timeout from 5s -> 30s
 	UA_Client_getConfig(client)->customDataTypes = &customDataTypes;// custom data types
 	UA_StatusCode retval = UA_Client_connect(client, ip_identifier);
 	if (retval != UA_STATUSCODE_GOOD) {
-		UA_Client_delete(client);
-		//std::cout << std::hex << retval << std::dec;
+
+		//delete client
+		OpcLog::deleteClient();
 
 		//pop up message
 		QMessageBox::critical(this, "Error", "open62541 error code: " + QString::fromStdString(UA_StatusCode_name(retval)), QMessageBox::Ok);
 		return (int)retval;
 	}
-
+	
 	/* Read the value attribute of the node. UA_Client_readValueAttribute is a
  * wrapper for the raw read service available as UA_Client_Service_read. */
-	UA_Variant value; /* Variants can hold scalar values and arrays of any type */
+/***UA_Variant value; // Variants can hold scalar values and arrays of any type 
 	UA_Variant_init(&value);
 
-	/* NodeId of the variable holding the current time */
+	// NodeId of the variable holding the current time //
 	const UA_NodeId nodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_SERVER_SERVERSTATUS_CURRENTTIME);
 	retval = UA_Client_readValueAttribute(client, nodeId, &value);
 
@@ -197,16 +253,18 @@ int OpcLog::UaConnection(UA_Boolean logging)
 	{
 		//pop up message
 		QMessageBox::critical(this, "Error", "open62541 error code: " + QString::fromStdString(UA_StatusCode_name(retval)), QMessageBox::Ok);
-		return (int)retval;
-	}
 
+		//delete client
+		OpcLog::deleteClient();
+		return (int)retval;
+	}***/
 
 
 
 	char* p = getenv("USERPROFILE");
 	if (logging != UA_TRUE)
 	{ //read nodes
-		retval = OpcLog::SingleReadArray(client,value, nodes_log_level);
+		retval = OpcLog::SingleReadArray(nodes_log_level,TRUE);
 	}		
 	else if (p)
 	{
@@ -225,11 +283,11 @@ int OpcLog::UaConnection(UA_Boolean logging)
 
 		if (OpcLog::isStandardMode())
 		{   //user marked standard mode
-			retval = OpcLog::SingleReadArray(client, opc_log, value, logging_db);
+			retval = OpcLog::SingleReadArray(opc_log,logging_db);
 		}
 		else
 		{  //user marked telecomunication mode
-			retval = OpcLog::SingleReadArray(client, opc_log, value, logging_tc_db);
+			retval = OpcLog::SingleReadArray(opc_log, logging_tc_db);
 		}
 
 		//close file
@@ -244,32 +302,23 @@ int OpcLog::UaConnection(UA_Boolean logging)
 
 	}
 	else
-	{
-		//delete client and interrupt execution in case of missing user profile
+		QMessageBox::critical(this, "Error", "%USERPROFILE% not found", QMessageBox::Ok); //delete client and interrupt execution in case of missing user profile
 
-		QMessageBox::critical(this, "Error", "%USERPROFILE% not found", QMessageBox::Ok);
-
-		UA_Client_disconnect(client);
-		UA_Client_delete(client); /* Disconnects the client internally */
-
-		return 0;
-	}
-
-	/* Clean up */
-	UA_Variant_clear(&value);
-
-	UA_Client_disconnect(client);
-	UA_Client_delete(client); /* Disconnects the client internally */
-
+	if (logging == UA_TRUE)		
+		OpcLog::deleteClient();//delete client
 	return 0;
 }
 
-int OpcLog::SingleReadArray(UA_Client* client, std::fstream& cvsfile, UA_Variant value, char* node_identifier)
+
+int OpcLog::SingleReadArray(std::fstream& cvsfile, char* node_identifier)
 {
 	UA_String log_entry;
 	UA_StatusCode retval;
 
-	UA_sleep_ms(10);
+	UA_Variant value; // Variants can hold scalar values and arrays of any type 
+	UA_Variant_init(&value);
+
+	//UA_sleep_ms(10);
 
 	retval = UA_Client_readValueAttribute(client, UA_NODEID_STRING(ns, node_identifier), &value);
 
@@ -294,21 +343,27 @@ int OpcLog::SingleReadArray(UA_Client* client, std::fstream& cvsfile, UA_Variant
 			values++;
 		}
 	}
-	else
-	{
-		//something went wrong
-		QMessageBox::critical(this, "Error", "open62541 error code: " + QString::fromStdString(UA_StatusCode_name(retval)), QMessageBox::Ok);
-	}
+	else		
+		QMessageBox::critical(this, "Error", "open62541 error code: " + QString::fromStdString(UA_StatusCode_name(retval)), QMessageBox::Ok); //something went wrong
+
+
+	/* Clean up */
+	UA_Variant_clear(&value);
+
 	return (int)retval;
 }
 
-int OpcLog::SingleReadArray(UA_Client* client, UA_Variant value, char* node_identifier)
+int OpcLog::SingleReadArray(char* node_identifier,bool Read)
 {
 	UA_String log_entry;
 	UA_StatusCode retval;
 
+	UA_Variant value; // Variants can hold scalar values and arrays of any type 
+	UA_Variant_init(&value);
+
 	std::vector<int> level_array;
-	UA_sleep_ms(10);
+
+	//UA_sleep_ms(10);
 
 	retval = UA_Client_readValueAttribute(client, UA_NODEID_STRING(ns, node_identifier), &value);
 
@@ -317,6 +372,9 @@ int OpcLog::SingleReadArray(UA_Client* client, UA_Variant value, char* node_iden
 		value.arrayLength > 0)
 	{
 		//SSI_HMI_CPM_Node_ST* values = (SSI_HMI_CPM_Node_ST*)UA_Array_new(value.arrayLength, &UA_TYPES[UA_TYPES_STRING]);
+
+		//optimalisation - reserve memory for know elements to avoid relocate vector in each pushback()
+		level_array.reserve(value.arrayLength);
 
 
 		UA_ExtensionObject* eo = ((UA_ExtensionObject*)value.data);
@@ -333,45 +391,38 @@ int OpcLog::SingleReadArray(UA_Client* client, UA_Variant value, char* node_iden
 			//std::cout << MyCDS->log_level << std::endl;
 			//MyCDS->log_level = 1;
 			//std::cout << MyCDS->log_level << std::endl;
-			// 
-			//fill levels array
-			level_array.push_back(MyCDS->log_level);
+			
+			if (Read)			
+				level_array.push_back(MyCDS->log_level); //fill levels array
+			else
+				MyCDS->log_level = secondUi->getNodeLevel(i); //overwrite current log level 
 		}
 
-		//pass node levels array to another class
-		secondUi->ShowNodes(level_array);
+		//don't overwrite node level values;
+		//user invoked only read
+		if (Read)
+			secondUi->ShowNodes(level_array); //pass node levels array to another class
+		else
+		{
+			//write changed level nodes
+			retval = UA_Client_writeValueAttribute(client, UA_NODEID_STRING(ns, node_identifier), &value);
 
-
-		////cast variant for string array
-		//values = (SSI_HMI_CPM_Node_ST*)value.data;
-
-
-
-		//for (size_t i = 0; i < value.arrayLength; i++)
-		//{
-		//	//cast to string with defined length, since values->data per se print sometimes trash overhead
-		//	//std::string s(reinterpret_cast<char const*>(values->log_level), values->length);
-
-		//	std::cout << values->refresh_done << std::endl;
-
-		//	//copy out current array entry to excel file
-		//	std::cout << values->log_level << std::endl;
-
-		//	//move pointer one data type size forward
-		//	values++;
-		//}
+			if (retval != UA_STATUSCODE_GOOD)
+				QMessageBox::critical(this, "Error", "open62541 error code: " + QString::fromStdString(UA_StatusCode_name(retval)), QMessageBox::Ok); //something went wrong
+		}
 
 		
-
-		retval = UA_Client_writeValueAttribute(client, UA_NODEID_STRING(ns, node_identifier), &value);
-
-
 	}
 	else
-	{
-		//something went wrong
-		QMessageBox::critical(this, "Error", "open62541 error code: " + QString::fromStdString(UA_StatusCode_name(retval)), QMessageBox::Ok);
-	}
+		QMessageBox::critical(this, "Error", "open62541 error code: " + QString::fromStdString(UA_StatusCode_name(retval)), QMessageBox::Ok); //something went wrong
+
+
+	/* Clean up */
+	UA_Variant_clear(&value);
+
+	if (!Read)
+		OpcLog::deleteClient(); //delete client
+
 	return (int)retval;
 }
 

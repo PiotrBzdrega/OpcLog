@@ -25,6 +25,7 @@
 #include "OpcLog.h"
 #include <QtWidgets/QApplication>
 #include "IPCtrl.h"
+#include "assert.h"
 
 //#include <QtWidgets/QWidget >
 //#include <QtWidgets/QPushButton>
@@ -479,6 +480,8 @@ int ExcelSample2(void)
 
 int main(int argc, char* argv[])
 {
+
+	//assert(5 > 6);
 
 
 	QApplication a(argc, argv);

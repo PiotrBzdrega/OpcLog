@@ -25,6 +25,11 @@
     <height>400</height>
    </size>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>OpcLog</string>
   </property>
@@ -402,7 +407,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>15</pointsize>
+      <pointsize>10</pointsize>
       <weight>75</weight>
       <italic>false</italic>
       <bold>true</bold>
@@ -413,7 +418,8 @@
      </font>
     </property>
     <property name="text">
-     <string>Read Node</string>
+     <string>MODIFY
+ LOG LEVELS</string>
     </property>
    </widget>
   </widget>
@@ -423,7 +429,7 @@
      <x>0</x>
      <y>0</y>
      <width>300</width>
-     <height>26</height>
+     <height>29</height>
     </rect>
    </property>
   </widget>

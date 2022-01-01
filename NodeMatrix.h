@@ -4,6 +4,7 @@
 #include "ui_NodeMatrix.h"
 #include <iostream>
 #include <vector>
+#include <qmessagebox.h>
 
 struct LOG_LEVEL {
 	std::string name; //log level name
@@ -19,16 +20,22 @@ public:
 	NodeMatrix(QWidget *parent = Q_NULLPTR);
 	~NodeMatrix();
 	void ShowNodes(std::vector<int> nodeLevels);
+	int getNodeLevel(int node) { return node_log_level[node]; }
 
 public slots:
 	void Overwrite();
+	void AssignAll();
 	void ChangeLevel(QTableWidgetItem* item);
+	void Reject();		//drop saved levels and close window
+
 signals:
 	void ClickedBtn();
 
+
 private:
 	Ui::NodeMatrix ui;
-	std::vector<int> node_log_level;
+	std::vector<int> node_log_level;  //current log level of all nodes
+	int ClickedButtonId();     //get checked button id
 	LOG_LEVEL TL[7]= 
 	{	{ "C_SSI_TL_LOGGING_LEVEL_NULL",  0, Qt::black },
 		{ "C_SSI_TL_LOGGING_LEVEL_FATAL", 1, Qt::darkRed },
