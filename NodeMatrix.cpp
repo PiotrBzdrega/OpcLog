@@ -8,7 +8,14 @@ NodeMatrix::NodeMatrix(QWidget *parent)
 {
 	ui.setupUi(this);
 
-	//set id's to button, to ease latter detection of id
+		ui.fatal->setStyleSheet("background-color: darkRed");
+		ui.error->setStyleSheet("background-color: red");
+		ui.warn->setStyleSheet("background-color: lightGray");
+		ui.info->setStyleSheet("background-color: magenta");
+		ui.debug->setStyleSheet("background-color: Chartreuse");
+		ui.trace->setStyleSheet("background-color: yellow");
+		
+	//set id's to button, to facilitate latter detection of id
 	ui.buttonGroup->setId(ui.level_up, TL[0].index);   //C_SSI_TL_LOGGING_LEVEL_NULL
 	ui.buttonGroup->setId(ui.fatal,    TL[1].index);   //C_SSI_TL_LOGGING_LEVEL_FATAL
 	ui.buttonGroup->setId(ui.error,    TL[2].index);   //C_SSI_TL_LOGGING_LEVEL_ERROR
@@ -16,10 +23,26 @@ NodeMatrix::NodeMatrix(QWidget *parent)
 	ui.buttonGroup->setId(ui.info,     TL[4].index);   //C_SSI_TL_LOGGING_LEVEL_INFO
 	ui.buttonGroup->setId(ui.debug,    TL[5].index);   //C_SSI_TL_LOGGING_LEVEL_DEBUG
 	ui.buttonGroup->setId(ui.trace,    TL[6].index);   //C_SSI_TL_LOGGING_LEVEL_TRACE
+
 }
 
 NodeMatrix::~NodeMatrix()
 {
+	//std::cout << "Destructor NODE" << "\n";
+}
+
+void NodeMatrix::paintEvent(QPaintEvent* event) 
+{
+
+	//QPainter painter(this);
+	//painter.setBrush(Qt::red);
+
+	//painter.drawRect(40, 580, 151, 31);//fatal
+	//painter.drawRect(40, 610, 151, 32);//error
+	//painter.drawRect(40, 641, 151, 32);//warn
+	//painter.drawRect(190,580,151,31);//info
+	//painter.drawRect(190, 610, 151, 32);//debug
+	//painter.drawRect(190, 641, 151, 32);//trace
 }
 
 void NodeMatrix::ShowNodes(std::vector<int> nodeLevels)
@@ -68,8 +91,6 @@ void NodeMatrix::ShowNodes(std::vector<int> nodeLevels)
 	//ui.tableWidget->setItem(0, 0, new QTableWidgetItem(QString::number(15)));
 
 	ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers); //disable posibility to edit cell
-
-	
 
 	// iterators to place item in proper place
 	int row_idx = 0;
