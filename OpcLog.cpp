@@ -5,7 +5,6 @@
 
 
 /* TODO: Loading window THREAD when connecting to server or waiting for data */
-/* TODO: remember last entered IP */
 
 
 
@@ -39,12 +38,116 @@ OpcLog::OpcLog(QWidget* parent)
 	QValidator* validator0 = new QRegExpValidator(rx, ui.Byte0);
 	ui.Byte0->setValidator(validator0);
 
+	//retrieve IP address from "cache"
+	OpcLog::getIpCache();
 }
 
 OpcLog::~OpcLog()
 {
 	//std::cout << "Destructor OPC" << "\n";
 }
+
+void OpcLog::getIpCache()
+{
+	//get TEMP path
+	char* p = getenv("TEMP"); 	
+
+	//char* to string
+	std::string path(p); 
+
+	//get COMPUTERNAME
+	p = getenv("COMPUTERNAME");	
+
+	//add slash
+	path.push_back('\\'); 
+
+	//char* to string
+	std::string computerName(p); 
+
+	//add prefix & computername & file extension to path
+	path += "OpcLog_" + computerName + ".bin"; 
+
+	//std::cout << path << "\n";
+
+	//open file in binary mode
+	std::ifstream ipcache(path, std::ios::binary);	
+
+	if (!ipcache)
+		std::cout<<"not opened" << "\n";
+	else if (ipcache.peek() == std::ifstream::traits_type::eof())
+		std::cout << "empty" << "\n";
+	else
+	{
+		// get length of file:
+		ipcache.seekg(0, ipcache.end);
+		int length = ipcache.tellg();
+		ipcache.seekg(0, ipcache.beg);
+
+		// allocate memory:
+		char* buffer = new char[length];
+
+		// read data as a block:
+		ipcache.read(buffer, length);
+
+		//allocate pointer on heap length 16 elements (char) -> int 4
+		int* bufferInt=new int[length / sizeof(int)];
+
+		//copy bytes into bufferInt
+		memcpy(&bufferInt, &buffer, sizeof(length));
+		//bufferInt = reinterpret_cast<int*>(&buffer); //why does not work
+
+		//set IP from "cache"
+		OpcLog::overwriteIp(bufferInt[0], bufferInt[1], bufferInt[2], bufferInt[3]);
+
+		//delete pointer
+		delete[] buffer;
+		//delete[] bufferInt;
+	}
+}
+
+void OpcLog::overwriteIp(int byte0, int byte1, int byte2, int byte3)
+{
+	ui.Byte0->setText(QString::number(byte0));
+	ui.Byte1->setText(QString::number(byte1));
+	ui.Byte2->setText(QString::number(byte2));
+	ui.Byte3->setText(QString::number(byte3));
+}
+
+void OpcLog::setIpCache(int byte0, int byte1, int byte2, int byte3)
+{
+	//get TEMP path
+	char* p = getenv("TEMP");
+
+	//char* to string
+	std::string path(p);
+
+	//get COMPUTERNAME
+	p = getenv("COMPUTERNAME");
+
+	//add slash
+	path.push_back('\\');
+
+	//char* to string
+	std::string computerName(p);
+
+	//add prefix & computername & file extension to path
+	path += "OpcLog_" + computerName + ".bin";
+
+	//std::cout << path << "\n";
+
+	//open file in binary mode
+	std::ofstream ipcache(path, std::ios::binary);
+
+	// allocate memory on stack
+	int buffer[4]{byte0,byte1,byte2,byte3};
+
+	//write buffer into file
+	ipcache.write((char*)(&buffer), sizeof(buffer));
+
+	//close file
+	ipcache.close();
+}
+
 
 void OpcLog::retrunToMain()
 {
@@ -110,6 +213,10 @@ int OpcLog::SetMembers()
 		IpAdress = (ui.Byte3->text() + "." + ui.Byte2->text() + "." + ui.Byte1->text() + "." + ui.Byte0->text()).toStdString();
 		//save mode from radio field
 		mode = (ui.StLog->isChecked()) ? "ST" : "TC";
+
+		//save correct iP address
+		OpcLog::setIpCache(byte0, byte1, byte2, byte3);
+
 		return 0;
 	}
 	else
@@ -127,13 +234,16 @@ void OpcLog::ReadNodeClicked()
 	if (SetMembers()==0) 
 	{
 
+		//read nodes
+		UA_StatusCode retval=OpcLog::UaConnection(UA_FALSE);
+
+		//OPC connection has been correctly established
+		if (retval == UA_STATUSCODE_GOOD)
+		{
+			//open "nodes" window
+			OpcLog::changeWindow();
+		}
 		
-		OpcLog::UaConnection(UA_FALSE);
-
-		//QApplication::exit();
-
-		//open "nodes" window
-		OpcLog::changeWindow();
 	}
 };
 

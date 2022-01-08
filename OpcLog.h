@@ -106,8 +106,8 @@ static UA_DataTypeMember Node_members[7] = {
 
 static const UA_DataType Node_type = {
 	UA_TYPENAME("SSI_HMI_CPM_Node_ST")					/* The nodeid of the type */
-	UA_NODEID_STRING(ns, "DT_\"SSI_HMI_CPM_Node_ST\""),
-	UA_NODEID_STRING(ns, "TE_\"SSI_HMI_CPM_Node_ST\""),
+	UA_NODEID_STRING(ns, (char*)"DT_\"SSI_HMI_CPM_Node_ST\""), //https://stackoverflow.com/questions/25549562/how-to-convert-const-char-to-char-in-c
+	UA_NODEID_STRING(ns, (char*)"TE_\"SSI_HMI_CPM_Node_ST\""),
 	sizeof(SSI_HMI_CPM_Node_ST),
 	UA_DATATYPEKIND_STRUCTURE,
 	true,
@@ -152,5 +152,9 @@ private:
 	void OpcLog::deleteClient();	
 	int OpcLog::checkCommunicacion();
 	void changeWindow();
+	void getIpCache();
+	void setIpCache(int byte0, int byte1, int byte2, int byte3);
+	void overwriteIp(int byte0, int byte1, int byte2, int byte3);
+	
 };
 
