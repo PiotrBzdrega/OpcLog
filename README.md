@@ -7,11 +7,8 @@ After user enter correct IP address for existing OPC UA Server -><br />
 -> then in %USERPROFILE% path (C:\Users\piotr in my case), .cvs file is created and finally opened  🙃
 
 **todo:**<br />
-- change all nodes level log "SSI_HMI_CPM_DB".node[#IO_EL_INFO.node_id].log_level to FATAL(1) <br /> 
-  then only selected by user leave for DEBUG(5)/TRACE(6)
-- verify also : <br /> 
+- take into account also: <br /> 
   "SSI_GS_Call_IDB"."appender_i"."para"."log_level".value.set := 4; // Loglevel of logging events
   "CS_GS_Call_IDB"."para"."lu_data_log_level".value.act := 4; // Loglevel of LU data-logging events
   "SSI_GS_Call_IDB"."para"."lists_log_level".value.act := 4; // Loglevel of list-logging events
   "SSI_GS_Call_IDB"."para"."tc_log_level".value.act := 4; // Loglevel of TC-logging events
-- remember last entered IP
