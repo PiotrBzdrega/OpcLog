@@ -131,7 +131,7 @@ public slots:
 	void ReadClicked();
 	void ReadNodeClicked();
 private slots:
-	void retrunToMain();
+	void retrunToMain(bool withConnection=false);
 
 
 private:

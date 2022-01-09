@@ -31,7 +31,7 @@ public slots:
 	void Reject();		//drop saved levels and close window
 
 signals:
-	void ClickedBtn();
+	void ClickedBtn(bool withConnection);
 
 private:
 	Ui::NodeMatrix ui;

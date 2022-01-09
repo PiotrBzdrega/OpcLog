@@ -130,14 +130,14 @@ void NodeMatrix::ShowNodes(std::vector<int> nodeLevels)
 void NodeMatrix::Overwrite()
 {
 	//emit signal to be able to detect it from other class
-	emit ClickedBtn();
+	emit ClickedBtn(true);
 
 }
 
 void NodeMatrix::Reject()
 {
 	//emit signal to be able to detect it from other class
-	//emit ClickedBtn();
+	emit ClickedBtn(false);
 
 }
 

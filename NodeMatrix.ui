@@ -30,6 +30,10 @@
   <property name="windowTitle">
    <string>Node Levels</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="OpcLog.qrc">
+    <normaloff>:/OpcLog/icon.jpg</normaloff>:/OpcLog/icon.jpg</iconset>
+  </property>
   <widget class="QTableWidget" name="tableWidget">
    <property name="geometry">
     <rect>
@@ -285,7 +289,9 @@
   <zorder>reject</zorder>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="OpcLog.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>send_to_plc</sender>

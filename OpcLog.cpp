@@ -149,7 +149,7 @@ void OpcLog::setIpCache(int byte0, int byte1, int byte2, int byte3)
 }
 
 
-void OpcLog::retrunToMain()
+void OpcLog::retrunToMain(bool withConnection)
 {
 
 	if (secondUi->isVisible())
@@ -159,7 +159,9 @@ void OpcLog::retrunToMain()
 		this->show();
 	}
 
-	OpcLog::UaConnection(UA_FALSE, UA_FALSE);
+	//returned to Main window with OPC connection
+	if (withConnection)
+		OpcLog::UaConnection(UA_FALSE, UA_FALSE);
 }
 
 void OpcLog::changeWindow()
