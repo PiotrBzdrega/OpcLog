@@ -10,5 +10,5 @@ After user enter correct IP address for existing OPC UA Server -><br />
 - take into account also: <br /> 
   "SSI_GS_Call_IDB"."appender_i"."para"."log_level".value.set := 4; // Loglevel of logging events
   "CS_GS_Call_IDB"."para"."lu_data_log_level".value.act := 4; // Loglevel of LU data-logging events
-  "SSI_GS_Call_IDB"."para"."lists_log_level".value.act := 4; // Loglevel of list-logging events
+  "SSI_GS_Call_IDB"."para"."lists_log_level".value.act := 4; // Loglevel of list-logging events <br />
   "SSI_GS_Call_IDB"."para"."tc_log_level".value.act := 4; // Loglevel of TC-logging events
