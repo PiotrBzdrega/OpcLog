@@ -1,7 +1,7 @@
 # OpcLog
 **Create OPC UA Client then reads/writes hardcoded Nodes from Server**
 
-**Libraries:**
+**Libraries:** <br />
 -open62541 [ver. 1.3] (opca ua interface): https://github.com/open62541/open62541 <br />
 -qt  [ver. 5.15.2] (gui): https://www.qt.io/ <br />
 -disphelper (COM helper to process .CVS file in Excel) https://github.com/DrYak/disphelper <br />
