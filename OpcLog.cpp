@@ -249,6 +249,12 @@ void OpcLog::ReadNodeClicked()
 	}
 };
 
+void OpcLog::ReadLUClicked()
+{
+
+	QMessageBox::information(this, "LUdata", "Hei Hei ", QMessageBox::Ok);
+};
+
 std::string OpcLog::getIp()
 {
 	return IpAdress;
